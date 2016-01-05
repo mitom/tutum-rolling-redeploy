@@ -20,10 +20,10 @@ The only requirements are python and `tutum-python` (get it with pip).
 ## Usage
 
 The script runs on env variables:
-`TUTUM_USER` - the username in tutum
-`TUTUM_APIKEY` - an api key for tutum
-`TUTUM_AUTH` - the auth header for tutum, handy if this runs in a docker container in tutum with full access
-`TUTUM_SERVICE` - the uuid of the service to redeploy
-`TUTUM_GRACE_PERIOD` - a number in seconds to wait before issuing the next redeploy after a container comes up. Defaults to 0
+* `TUTUM_USER` - the username in tutum
+* `TUTUM_APIKEY` - an api key for tutum
+* `TUTUM_AUTH` - the auth header for tutum, handy if this runs in a docker container in tutum with full access
+* `TUTUM_SERVICE` - the uuid of the service to redeploy
+* `TUTUM_GRACE_PERIOD` - a number in seconds to wait before issuing the next redeploy after a container comes up. Defaults to 0
 
 Either `TUTUM_USER` AND `TUTUM_APIKEY` are needed OR `TUTUM_AUTH`, but `TUTUM_AUTH` will be preferred if all are present.
