@@ -10,7 +10,7 @@ service_uuid = os.environ.get('TUTUM_SERVICE')
 username = os.environ.get('TUTUM_USER')
 apikey = os.environ.get('TUTUM_APIKEY')
 tutum_auth = os.environ.get('TUTUM_AUTH')
-grace_period = os.environ.get('TUTUM_GRACE_PERIOD') or 0
+grace_period = float(os.environ.get('TUTUM_GRACE_PERIOD') or 0)
 
 if (not (username and apikey) and not tutum_auth):
     raise EnvironmentError('You should either give full access to this service, or provide TUTUM_USER and TUTUM_APIKEY as env variables')
@@ -52,7 +52,9 @@ def on_message(ws, message):
     message = json.loads(message)
     if message['type'] == 'container' and message['state'] == 'Running':
         if (is_new_container(message)):
-            time.sleep(grace_period)
+            if (grace_period):
+                print "Waiting " + str(grace_period) + " seconds (grace period)"
+                time.sleep(grace_period)
             redeploy_next()
 
 def on_error(ws, error):
@@ -82,7 +84,6 @@ ws = websocket.WebSocketApp('wss://stream.tutum.co/v1/events',
 existing_containers = tutum.Container.list(service=service_full)
 for container in existing_containers:
     if container.state in ['Running', 'Starting']:
-        print vars(container)
         containers.append(container)
 
 print "Found " + str(len(containers)) + " containers"
