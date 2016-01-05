@@ -11,6 +11,7 @@ username = os.environ.get('TUTUM_USER')
 apikey = os.environ.get('TUTUM_APIKEY')
 tutum_auth = os.environ.get('TUTUM_AUTH')
 grace_period = float(os.environ.get('TUTUM_GRACE_PERIOD') or 0)
+redeploy_step = os.environ.get('TUTUM_REDEPLOY_STEP') or 1
 
 if (not (username and apikey) and not tutum_auth):
     raise EnvironmentError('You should either give full access to this service, or provide TUTUM_USER and TUTUM_APIKEY as env variables')
@@ -65,12 +66,23 @@ def on_close(ws):
 
 def on_open(ws):
     print "Stream opened."
-    redeploy_next()
+
+
+    for _ in xrange(to_redeploy):
+        redeploy_next()
 
 if (tutum_auth):
     header = "Authorization: " + tutum_auth
 else:
     header = "Authorization: Basic %s" % base64.b64encode("%s:%s" % (username, apikey))
+
+
+
+if redeploy_step == 'service':
+    service = tutum.Service.fetch(service_uuid)
+    service.redeploy()
+    print "Service redeploy request sent."
+    sys.exit()
 
 
 ws = websocket.WebSocketApp('wss://stream.tutum.co/v1/events',
@@ -82,9 +94,18 @@ ws = websocket.WebSocketApp('wss://stream.tutum.co/v1/events',
 )
 
 existing_containers = tutum.Container.list(service=service_full)
+
 for container in existing_containers:
     if container.state in ['Running', 'Starting']:
         containers.append(container)
+
+if redeploy_step == 'half':
+    to_redeploy = len(containers)/2
+else:
+    try:
+        to_redeploy = int(redeploy_step)
+    except ValueError as e:
+        to_redeploy = 1
 
 print "Found " + str(len(containers)) + " containers"
 
